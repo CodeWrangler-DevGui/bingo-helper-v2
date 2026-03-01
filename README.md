@@ -1,36 +1,80 @@
-This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://nextjs.org/docs/app/api-reference/cli/create-next-app).
+# Jogo de Bingo
 
-## Getting Started
+## Descrição
 
-First, run the development server:
+Este é um jogo de bingo baseado na web, onde os usuários podem gerar suas próprias cartelas, jogar com regras diferentes e verificar os vencedores automaticamente.
 
-```bash
-npm run dev
-# or
-yarn dev
-# or
-pnpm dev
-# or
-bun dev
+## Funcionalidades
+
+- Gere cartelas de bingo personalizadas com nome e cor.
+- Insira seus próprios números (1-75).
+- O centro da cartela é um espaço "FREE".
+- Múltiplas regras de jogo: Cartela Cheia, Quatro Cantos, Linha Horizontal, Linha Vertical, Diagonal e Padrão Especial.
+- As cartelas são agrupadas por cor.
+- Detecção automática de vencedores.
+- Opção de continuar o jogo ou iniciar uma nova rodada após uma vitória.
+- Design responsivo para diferentes tamanhos de tela.
+
+## Regras da Rodada
+
+As regras da rodada definem qual padrão de números marcados na cartela resulta numa vitória.
+
+Pode escolher a regra do jogo antes de começar a marcar os números. O jogo irá detetar automaticamente um vencedor assim que uma cartela completar o padrão da regra selecionada.
+
+As regras disponíveis são:
+
+- **Cartela Cheia:** Todos os 24 números e o espaço "FREE" central devem estar marcados.
+- **Quatro Cantos:** Os 4 números nos cantos da cartela (o primeiro e o último da coluna B, e o primeiro e o último da coluna O) devem estar marcados.
+- **Linha Horizontal:** Qualquer uma das 5 linhas horizontais completas deve estar marcada.
+- **Linha Vertical:** Qualquer uma das 5 colunas verticais (B, I, N, G, O) completas deve estar marcada.
+- **Diagonal:** Qualquer uma das 2 linhas diagonais completas (de canto a canto, passando pelo centro) deve estar marcada.
+- **Padrão Especial:** Esta regra combina várias condições. Vence se completar qualquer um dos seguintes padrões: Quatro Cantos, uma Linha Horizontal, uma Linha Vertical ou uma Diagonal.
+
+## Como Jogar
+
+1. Abra o arquivo `https://devgui28.github.io/Jogo-Bingo/` em seu navegador da web.
+2. Dê um nome para sua cartela.
+3. Escolha uma cor para sua cartela.
+4. Preencha os 24 números na cartela (o centro é um espaço "FREE").
+5. Clique em "Adicionar Cartela" para adicionar sua cartela ao jogo.
+6. Repita o processo para adicionar mais cartelas.
+7. Selecione a regra do jogo para a rodada atual.
+8. À medida que os números forem sorteados, clique nos números correspondentes em suas cartelas para marcá-los.
+9. O jogo detectará e anunciará automaticamente o vencedor.
+
+## Tecnologias Utilizadas
+
+- HTML
+- CSS
+- JavaScript
+
+## Estrutura de pastas
 ```
-
-Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
-
-You can start editing the page by modifying `app/page.tsx`. The page auto-updates as you edit the file.
-
-This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
-
-## Learn More
-
-To learn more about Next.js, take a look at the following resources:
-
-- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
-- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
-
-You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
-
-## Deploy on Vercel
-
-The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
-
-Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
+Bingo Helper
+│
+├── 📁 actions
+│   └── 📄 bingo.ts
+├── 📁 app
+│   ├── 🎨 globals.css
+│   ├── 🖼️ icon.png
+│   ├── 📄 layout.tsx
+│   └── 📄 page.tsx
+├── 📁 components
+│   ├── 📄 AddCardModal.tsx
+│   └── 📄 BingoCard.tsx
+├── 📁 lib
+│   ├── 📄 bingo-utils.ts
+│   └── 📄 prisma.ts
+├── 📁 prisma
+│   └── 📄 schema.prisma
+├── 📁 public
+├── ⚙️ .gitignore
+├── 📝 README.md
+├── 📄 eslint.config.mjs
+├── 📄 next.config.ts
+├── ⚙️ package-lock.json
+├── ⚙️ package.json
+├── 📄 postcss.config.mjs
+├── 📄 prisma.config.ts
+└── ⚙️ tsconfig.json
+```
