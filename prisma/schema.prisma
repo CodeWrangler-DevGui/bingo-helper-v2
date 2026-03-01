@@ -1,0 +1,18 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider  = "postgresql"
+  url       = env("DATABASE_URL")
+  directUrl = env("DIRECT_URL")
+}
+
+// A nossa tabela de cartelas no banco de dados
+model Card {
+  id           String   @id @default(uuid())
+  serialNumber String   @unique
+  numbers      Int[]
+  color        String   @default("jornal") // <-- NOVO: Salva a cor da cartela
+  createdAt    DateTime @default(now())
+}
