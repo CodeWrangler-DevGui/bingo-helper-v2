@@ -97,7 +97,7 @@ export default function Home() {
         {/* Cabeçalho */}
         <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
           <div>
-            <h1 className="text-3xl font-black text-slate-800">Bingo Helper 2.0</h1>
+            <h1 className="text-3xl font-black text-slate-800">Bingo Helper</h1>
             <p className="text-slate-500 font-medium mt-1">
               {cards.length} {cards.length === 1 ? 'cartela física cadastrada' : 'cartelas físicas cadastradas'}
             </p>
@@ -219,7 +219,7 @@ export default function Home() {
 
             {cards.length === 0 && (
               <div className="col-span-full text-center py-20">
-                <span className="text-6xl mb-4 block">🤠</span>
+                <span className="text-6xl mb-4 block">📅</span>
                 <h3 className="text-xl font-bold text-gray-700">Nenhuma cartela física cadastrada!</h3>
                 <p className="text-gray-500 mt-2">Clique no botão &quot;Cadastrar Cartela&quot; para inserir os números que estão no papel.</p>
               </div>
