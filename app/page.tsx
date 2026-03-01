@@ -13,8 +13,9 @@ export default function Home() {
   const [stoneInput, setStoneInput] = useState("");
   const [isModalOpen, setIsModalOpen] = useState(false);
 
+  // ESTADOS DO LOCUTOR: Cor e Regra da Rodada
   const [activeRoundColor, setActiveRoundColor] = useState("todas");
-  const [activeRule, setActiveRule] = useState("cheia");
+  const [activeRule, setActiveRule] = useState("cheia"); // Começa com Cartela Cheia por padrão
 
   useEffect(() => {
     const fetchCards = async () => {
@@ -93,7 +94,7 @@ export default function Home() {
     <main className="min-h-screen bg-gray-50 p-4 sm:p-8 relative">
       <div className="max-w-7xl mx-auto">
 
-        {/* Cabeçalho Limpo (Apenas Texto) */}
+        {/* Cabeçalho */}
         <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
           <div>
             <h1 className="text-3xl font-black text-slate-800">Bingo Helper 2.0</h1>
@@ -124,6 +125,7 @@ export default function Home() {
           <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-6 gap-4">
             <h2 className="text-xl font-black text-indigo-800 flex items-center gap-2">🎤 Painel do Locutor</h2>
 
+            {/* SELETORES: Cor da Rodada e Regra da Vitória */}
             <div className="flex flex-col sm:flex-row items-center gap-4 bg-indigo-50 px-5 py-3 rounded-xl border border-indigo-100">
 
               <div className="flex items-center gap-2">
@@ -170,21 +172,9 @@ export default function Home() {
               placeholder="Nº da pedra..."
               className="w-full sm:w-48 px-4 py-3 rounded-xl border border-gray-200 outline-none font-bold text-indigo-900"
             />
-            <button type="submit" className="w-full sm:w-auto bg-indigo-100 hover:bg-indigo-200 text-indigo-800 px-6 py-3 rounded-xl font-bold transition-all">
-              🎤 Cantar Pedra
-            </button>
+            <button type="submit" className="w-full sm:w-auto bg-indigo-100 hover:bg-indigo-200 text-indigo-800 px-6 py-3 rounded-xl font-bold transition-all">Cantar Pedra</button>
             {drawnNumbers.length > 0 && (
-              <button
-                type="button"
-                onClick={() => {
-                  if (confirm("Tem certeza que deseja limpar as pedras do locutor?")) {
-                    setDrawnNumbers([]);
-                  }
-                }}
-                className="text-red-500 hover:text-red-700 font-bold px-4 py-3 transition-colors"
-              >
-                Limpar Sorteio
-              </button>
+              <button type="button" onClick={() => setDrawnNumbers([])} className="text-red-500 hover:text-red-700 font-bold px-4 py-3">Limpar Sorteio</button>
             )}
           </form>
           {drawnNumbers.length > 0 && (
@@ -218,7 +208,7 @@ export default function Home() {
                 color={c.color}
                 drawnNumbers={drawnNumbers}
                 activeRoundColor={activeRoundColor}
-                activeRule={activeRule}
+                activeRule={activeRule} // <-- ENVIAMOS A REGRA PARA A CARTELA AQUI
                 onDelete={handleDeleteCard}
               />
             ))}
