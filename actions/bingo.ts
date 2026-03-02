@@ -1,60 +1,41 @@
 "use server";
+import { prisma } from "@/lib/prisma";
 
-import { prisma } from "../lib/prisma";
-
-// AGORA RECEBE A COR (color)
-export async function saveCard(serial: string, numbers: (number | 'LIVRE')[], color: string = "jornal") {
-    const numericNumbers = numbers.map(n => n === 'LIVRE' ? 0 : n);
-
+export async function saveCard(serial: string, numbers: (number | 'LIVRE' | 0)[], color: string, userId: string) {
     try {
-        const card = await prisma.card.create({
-            data: {
-                serialNumber: serial,
-                numbers: numericNumbers,
-                color: color // Salvando a cor no banco
-            }
+        const formattedNumbers = numbers.map(n => (n === 'LIVRE' || n === 0) ? 0 : Number(n));
+        await prisma.bingoCard.create({
+            data: { serialNumber: serial, numbers: formattedNumbers, color: color, userId: userId },
         });
-
-        return { success: true, card };
-    } catch (error) {
-        console.error("Erro ao salvar a cartela no Supabase:", error);
-        return { success: false, error: "Falha ao salvar no banco de dados." };
+        return { success: true };
+    } catch (error: any) {
+        if (error.code === 'P2002') return { success: false, error: "Série duplicada!" };
+        return { success: false };
     }
 }
 
-// ... o resto do arquivo (getCards, deleteCard, deleteAllCards) continua igualzinho!
-export async function getCards() {
+export async function getCards(userId: string) {
     try {
-        const cards = await prisma.card.findMany({
-            orderBy: {
-                createdAt: 'asc', // Traz as mais antigas primeiro, para manter a ordem no ecrã
-            },
+        const cards = await prisma.bingoCard.findMany({
+            where: { userId: userId },
+            orderBy: { createdAt: 'desc' }
         });
         return { success: true, cards };
     } catch (error) {
-        console.error("Erro ao buscar as cartelas no Supabase:", error);
         return { success: false, cards: [] };
     }
 }
-export async function deleteCard(serial: string) {
+
+export async function deleteCard(serial: string, userId: string) {
     try {
-        await prisma.card.delete({
-            where: { serialNumber: serial }
-        });
+        await prisma.bingoCard.deleteMany({ where: { serialNumber: serial, userId: userId } });
         return { success: true };
-    } catch (error) {
-        console.error(`Erro ao apagar a cartela ${serial}:`, error);
-        return { success: false, error: "Falha ao apagar a cartela." };
-    }
+    } catch (error) { return { success: false }; }
 }
 
-// Função para apagar TODAS as cartelas de uma vez (O "Reset")
-export async function deleteAllCards() {
+export async function deleteAllCards(userId: string) {
     try {
-        await prisma.card.deleteMany({}); // O objeto vazio {} significa "apague tudo"
+        await prisma.bingoCard.deleteMany({ where: { userId: userId } });
         return { success: true };
-    } catch (error) {
-        console.error("Erro ao limpar o banco de dados:", error);
-        return { success: false, error: "Falha ao limpar o banco de dados." };
-    }
+    } catch (error) { return { success: false }; }
 }

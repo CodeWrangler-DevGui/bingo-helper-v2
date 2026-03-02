@@ -9,10 +9,16 @@ datasource db {
 }
 
 // A nossa tabela de cartelas no banco de dados
-model Card {
-  id           String   @id @default(uuid())
-  serialNumber String   @unique
-  numbers      Int[]
-  color        String   @default("jornal") // <-- NOVO: Salva a cor da cartela
+// Modelo da Cartela de Bingo
+model BingoCard {
+  id           String   @id @default(cuid())
+  serialNumber String   @unique // O número que identifica a cartela física
+  numbers      Int[]    // Array de números (o 'LIVRE' vira 0 aqui)
+  color        String   @default("jornal") // Cor da rodada (jornal, verde, rosa, etc.)
+  
+  // Relação com o Usuário do Supabase
+  userId       String   // Aqui guardamos o UUID que vem do seu Login
+  
   createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
 }
