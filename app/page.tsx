@@ -125,15 +125,16 @@ export default function Home() {
           <div className="flex flex-col lg:flex-row lg:items-center justify-between mb-6 gap-4">
             <h2 className="text-xl font-black text-indigo-800 flex items-center gap-2">🎤 Painel do Locutor</h2>
 
-            {/* SELETORES: Cor da Rodada e Regra da Vitória */}
-            <div className="flex flex-col sm:flex-row items-center gap-4 bg-indigo-50 px-5 py-3 rounded-xl border border-indigo-100">
+            {/* SELETORES SEPARADOS PARA O CELULAR */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full lg:w-auto">
 
-              <div className="flex items-center gap-2">
+              {/* Caixa Individual: RODADA */}
+              <div className="flex items-center justify-between gap-3 bg-indigo-50 px-5 py-4 rounded-xl border border-indigo-100">
                 <span className="font-bold text-indigo-800 text-sm uppercase tracking-wider">Rodada:</span>
                 <select
                   value={activeRoundColor}
                   onChange={(e) => setActiveRoundColor(e.target.value)}
-                  className="bg-transparent font-black text-indigo-900 outline-none cursor-pointer"
+                  className="bg-transparent font-black text-indigo-900 outline-none cursor-pointer flex-1 text-right sm:text-left"
                 >
                   <option value="todas">🎯 Todas</option>
                   <option value="jornal">📰 Jornal</option>
@@ -143,14 +144,13 @@ export default function Home() {
                 </select>
               </div>
 
-              <div className="hidden sm:block w-px h-6 bg-indigo-200"></div>
-
-              <div className="flex items-center gap-2">
+              {/* Caixa Individual: REGRA */}
+              <div className="flex items-center justify-between gap-3 bg-indigo-50 px-5 py-4 rounded-xl border border-indigo-100">
                 <span className="font-bold text-indigo-800 text-sm uppercase tracking-wider">Regra:</span>
                 <select
                   value={activeRule}
                   onChange={(e) => setActiveRule(e.target.value)}
-                  className="bg-transparent font-black text-indigo-900 outline-none cursor-pointer"
+                  className="bg-transparent font-black text-indigo-900 outline-none cursor-pointer flex-1 text-right sm:text-left"
                 >
                   <option value="cheia">📦 Cartela Cheia</option>
                   <option value="especial">✨ Padrão Especial</option>
