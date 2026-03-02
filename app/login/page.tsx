@@ -1,8 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase";
-import styles from './login.module.css';
+import { supabase } from "@/lib/supabase"; 
 
 export default function LoginPage() {
     const [isLogin, setIsLogin] = useState(true);
@@ -19,30 +18,17 @@ export default function LoginPage() {
 
         try {
             if (isLogin) {
-                // TENTA FAZER LOGIN
-                const { error } = await supabase.auth.signInWithPassword({
-                    email,
-                    password,
-                });
+                const { error } = await supabase.auth.signInWithPassword({ email, password });
                 if (error) throw error;
-
-                // Se deu certo, manda o peão pra arena principal!
                 router.push("/");
             } else {
-                // TENTA CADASTRAR NOVO JOGADOR
-                const { error } = await supabase.auth.signUp({
-                    email,
-                    password,
-                });
+                const { error } = await supabase.auth.signUp({ email, password });
                 if (error) throw error;
-
                 alert("Conta criada com sucesso! Entre na arena.");
-                setIsLogin(true);
+                setIsLogin(true); 
             }
         } catch (err) {
-            // 👉 RESOLVE O ERRO 'ANY': Tratamos o erro como um objeto de erro padrão
             const error = err as Error;
-
             setErrorMsg(error.message === "Invalid login credentials"
                 ? "E-mail ou senha incorretos, parceiro."
                 : error.message);
@@ -53,10 +39,8 @@ export default function LoginPage() {
 
     return (
         <main className="min-h-screen bg-gray-50 flex flex-col items-center justify-center p-4">
-            {/* Container principal branco arredondado */}
             <div className="bg-white p-10 rounded-[2.5rem] shadow-xl border border-indigo-100 w-full max-w-md">
 
-                {/* Título e Subtítulo */}
                 <div className="text-center mb-10">
                     <h1 className="text-4xl font-black text-slate-800 tracking-tight">Bingo Helper</h1>
                     <p className="text-slate-400 font-medium uppercase text-xs tracking-widest mt-2">
@@ -64,17 +48,21 @@ export default function LoginPage() {
                     </p>
                 </div>
 
-                {/* Formulário */}
                 <form onSubmit={handleSubmit}>
-                    <div className={styles.formFields}>
+                    {/* 👉 Substituímos o .formFields do CSS por Tailwind: flex, gap-6, mb-8 */}
+                    <div className="flex flex-col gap-6 mb-8">
+                        
+                        {/* Campo de E-mail 100% Tailwind */}
                         <input
                             type="email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             required
                             placeholder="teste@peao.com"
-                            className={styles.inputField}
+                            className="w-full px-5 py-4 rounded-2xl border-2 border-slate-200 bg-slate-50 text-slate-800 font-bold text-lg outline-none transition-all duration-300 placeholder:text-slate-400 placeholder:font-medium focus:border-indigo-600 focus:bg-white focus:ring-4 focus:ring-indigo-600/15"
                         />
+
+                        {/* Campo de Senha 100% Tailwind */}
                         <input
                             type="password"
                             value={password}
@@ -82,9 +70,10 @@ export default function LoginPage() {
                             required
                             minLength={6}
                             placeholder="Senha de 6 caracteres"
-                            className={styles.inputField}
+                            className="w-full px-5 py-4 rounded-2xl border-2 border-slate-200 bg-slate-50 text-slate-800 font-bold text-lg outline-none transition-all duration-300 placeholder:text-slate-400 placeholder:font-medium focus:border-indigo-600 focus:bg-white focus:ring-4 focus:ring-indigo-600/15"
                         />
                     </div>
+
                     {errorMsg && (
                         <p className="text-red-500 text-sm font-bold text-center -mt-4 mb-4">
                             ⚠️ {errorMsg}
