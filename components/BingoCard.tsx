@@ -1,136 +1,134 @@
 "use client";
-import { useState, useMemo, useCallback } from 'react';
+import { useMemo, useEffect, useRef } from "react";
+
+interface BingoCardProps {
+  serialNumber: string;
+  numbers: (number | 'LIVRE')[];
+  color: string;
+  drawnNumbers: number[];
+  activeRoundColor: string;
+  activeRule: string;
+  onDelete: (serial: string) => void;
+}
 
 export default function BingoCard({ 
-  serialNumber, 
-  numbers,
-  color = "jornal",
-  drawnNumbers = [],
-  activeRoundColor = "todas",
-  activeRule = "cheia",
-  onDelete 
-}: { 
-  serialNumber: string, 
-  numbers: (number | 'LIVRE')[],
-  color?: string,
-  drawnNumbers?: number[],
-  activeRoundColor?: string,
-  activeRule?: string,
-  onDelete?: (serial: string) => void 
-}) {
-  const [marked, setMarked] = useState<(number | 'LIVRE')[]>(['LIVRE']);
+  serialNumber, numbers, color, drawnNumbers, activeRoundColor, activeRule, onDelete 
+}: BingoCardProps) {
+  
+  const cardRef = useRef<HTMLDivElement>(null);
 
-  const isActiveRound = activeRoundColor === "todas" || activeRoundColor === color;
+  const isWinner = useMemo(() => {
+    if (activeRoundColor !== "todas" && activeRoundColor !== color) return false;
 
-  const toggleMark = (num: number | 'LIVRE') => {
-    if (num === 'LIVRE' || !isActiveRound) return;
-    setMarked(prev => prev.includes(num) ? prev.filter(n => n !== num) : [...prev, num]);
-  };
+    const isMarked = (idx: number) => numbers[idx] === 'LIVRE' || drawnNumbers.includes(numbers[idx] as number);
 
-  const isMarked = useCallback((num: number | 'LIVRE') => {
-    if (num === 'LIVRE') return true;
-    const locutorMarcou = isActiveRound && drawnNumbers.includes(num);
-    return marked.includes(num) || locutorMarcou;
-  }, [marked, drawnNumbers, isActiveRound]);
-
-  const winStatus = useMemo(() => {
-    const grid = numbers.map(n => isMarked(n));
-
-    const corners = grid[0] && grid[4] && grid[20] && grid[24];
-    const diag1 = grid[0] && grid[6] && grid[12] && grid[18] && grid[24];
-    const diag2 = grid[4] && grid[8] && grid[12] && grid[16] && grid[20];
-    const diagonal = diag1 || diag2;
-
-    let horizontal = false;
-    for (let i = 0; i < 5; i++) {
-      if (grid[i*5] && grid[i*5+1] && grid[i*5+2] && grid[i*5+3] && grid[i*5+4]) horizontal = true;
+    switch (activeRule) {
+      case "cheia":
+        return numbers.every((_, i) => isMarked(i));
+      case "cantos":
+        return [0, 4, 20, 24].every(isMarked);
+      case "horizontal":
+        for (let row = 0; row < 5; row++) {
+          if ([0, 1, 2, 3, 4].every(col => isMarked(row * 5 + col))) return true;
+        }
+        return false;
+      case "vertical":
+        for (let col = 0; col < 5; col++) {
+          if ([0, 1, 2, 3, 4].every(row => isMarked(row * 5 + col))) return true;
+        }
+        return false;
+      case "diagonal":
+        const diag1 = [0, 6, 12, 18, 24].every(isMarked);
+        const diag2 = [4, 8, 12, 16, 20].every(isMarked);
+        return diag1 || diag2;
+      case "especial":
+        return [0, 4, 6, 8, 12, 16, 18, 20, 24].every(isMarked);
+      default:
+        return false;
     }
+  }, [numbers, color, drawnNumbers, activeRoundColor, activeRule]);
 
-    let vertical = false;
-    for (let i = 0; i < 5; i++) {
-      if (grid[i] && grid[i+5] && grid[i+10] && grid[i+15] && grid[i+20]) vertical = true;
+  useEffect(() => {
+    if (isWinner && cardRef.current) {
+      cardRef.current.scrollIntoView({ behavior: "smooth", block: "center" });
     }
+  }, [isWinner]);
 
-    const full = grid.every(Boolean);
-
-    if (activeRule === 'cheia' && full) return "CARTELA CHEIA";
-    if (activeRule === 'cantos' && corners) return "4 CANTOS";
-    if (activeRule === 'horizontal' && horizontal) return "LINHA HORIZONTAL";
-    if (activeRule === 'vertical' && vertical) return "LINHA VERTICAL";
-    if (activeRule === 'diagonal' && diagonal) return "DIAGONAL";
-    
-    if (activeRule === 'especial') {
-      if (corners) return "4 CANTOS";
-      if (diagonal) return "DIAGONAL";
-      if (horizontal) return "LINHA HORIZONTAL";
-      if (vertical) return "LINHA VERTICAL";
-    }
-
-    return null; 
-  }, [numbers, isMarked, activeRule]);
-
-  const allThemes: Record<string, { bg: string, text: string, border: string, active: string }> = {
-    jornal: { bg: 'bg-gray-50', text: 'text-gray-800', border: 'border-gray-300', active: 'bg-gray-800 text-white' },
-    verde: { bg: 'bg-green-50', text: 'text-green-900', border: 'border-green-300', active: 'bg-green-600 text-white' },
-    rosa: { bg: 'bg-pink-50', text: 'text-pink-900', border: 'border-pink-300', active: 'bg-pink-600 text-white' },
-    amarelo: { bg: 'bg-yellow-50', text: 'text-yellow-900', border: 'border-yellow-400', active: 'bg-yellow-600 text-white' },
-  };
-
-  const theme = allThemes[color] || allThemes.jornal;
-  const opacityClass = isActiveRound ? 'opacity-100' : 'opacity-50 grayscale scale-95';
+  const colorStyles = {
+    jornal: "border-gray-200 bg-white",
+    verde: "border-green-300 bg-green-50/50",
+    rosa: "border-pink-300 bg-pink-50/50",
+    amarelo: "border-yellow-300 bg-yellow-50/50"
+  }[color] || "border-gray-200 bg-white";
 
   return (
-    <div className={`p-5 rounded-2xl shadow-lg border-2 transition-all duration-500 relative ${theme.bg} ${theme.border} ${opacityClass} ${
-      winStatus ? 'ring-4 ring-yellow-400 scale-105 shadow-yellow-200 z-20' : ''
-    }`}>
-      
-      {onDelete && (
-        <button onClick={() => onDelete(serialNumber)} className="absolute -top-3 -right-3 bg-red-100 hover:bg-red-500 text-red-600 hover:text-white rounded-full w-8 h-8 flex items-center justify-center font-bold shadow-sm transition-colors border border-red-200 z-30">✕</button>
-      )}
+    <div 
+      ref={cardRef} 
+      className={`relative p-5 rounded-2xl border-2 transition-all duration-500 
+      ${colorStyles} 
+      ${isWinner ? 'scale-105 ring-4 ring-yellow-400 shadow-2xl shadow-yellow-400/30 z-10' : 'shadow-sm hover:shadow-md'}`}
+    >
+      <button 
+        onClick={() => onDelete(serialNumber)} 
+        className="absolute -top-3 -right-3 bg-white text-red-400 rounded-full p-1.5 border border-red-100 hover:bg-red-500 hover:text-white transition-colors shadow-sm z-30"
+        title="Excluir Cartela"
+      >
+        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="18" y1="6" x2="6" y2="18"></line><line x1="6" y1="6" x2="18" y2="18"></line></svg>
+      </button>
 
-      <div className={`flex flex-col mb-4 border-b-2 pb-2 ${theme.border}`}>
-        <div className="flex justify-between items-center w-full">
-          <h2 className={`text-2xl font-black tracking-widest ${winStatus ? 'text-yellow-600 animate-pulse' : theme.text}`}>
-            {winStatus ? '🏆 BINGO!' : 'BINGO'}
-          </h2>
-          <span className={`text-sm font-mono font-bold px-2 py-1 rounded bg-white/60 ${theme.text}`}>
-            Nº {serialNumber}
-          </span>
-        </div>
-        {winStatus && (
-          <span className="text-center bg-yellow-400 text-yellow-900 font-black text-xs uppercase px-2 py-1 mt-2 rounded-lg animate-bounce shadow-sm">
-            BATIDA: {winStatus}
-          </span>
-        )}
-      </div>
-      
-      <div className={`grid grid-cols-5 gap-2 text-center mb-2 font-black text-lg ${theme.text}`}>
-        <span>B</span><span>I</span><span>N</span><span>G</span><span>O</span>
-      </div>
-      
-      <div className="grid grid-cols-5 gap-2 text-center relative">
-        {!isActiveRound && (
-          <div className="absolute inset-0 z-10 flex items-center justify-center">
-            <span className="bg-black/70 text-white font-bold px-4 py-2 rounded-lg rotate-12 backdrop-blur-sm shadow-xl">
-              FORA DA RODADA
+      {/* 👉 O LETREIRO ATUALIZADO COM O NÚMERO DA CARTELA */}
+      {isWinner && (
+        <div className="absolute inset-0 bg-black/60 backdrop-blur-[2px] rounded-2xl flex items-center justify-center z-20 overflow-hidden">
+          <div className="animate-bounce flex flex-col items-center -rotate-12">
+            <span className="text-5xl font-black text-yellow-400 drop-shadow-[0_0_20px_rgba(250,204,21,1)] tracking-widest border-4 border-yellow-400 px-6 py-3 rounded-2xl bg-black/50 uppercase mb-2">
+              Bingo!
+            </span>
+            {/* Plaquinha com o número pulando junto */}
+            <span className="text-xl font-black text-white bg-slate-900 px-5 py-2 rounded-xl border-2 border-yellow-400 drop-shadow-[0_0_10px_rgba(250,204,21,0.5)]">
+              Nº {serialNumber}
             </span>
           </div>
-        )}
+        </div>
+      )}
 
-        {numbers.map((n, i) => (
-          <button
-            key={i}
-            onClick={() => toggleMark(n)}
-            disabled={!isActiveRound}
-            className={`aspect-square flex items-center justify-center rounded-xl font-bold text-lg transition-all duration-200 ${
-              isMarked(n)
-                ? `${theme.active} scale-95 shadow-inner ring-1 ring-black/10` 
-                : 'bg-white/70 text-gray-800 hover:bg-white hover:shadow-md'
-            }`}
-          >
-            {n === 'LIVRE' ? '★' : n}
-          </button>
+      <div className="flex justify-between items-end mb-4 border-b border-gray-200 pb-3">
+        <h3 className="text-2xl font-black text-slate-800 tracking-[0.3em]">BINGO</h3>
+        <span className="text-xs font-bold text-slate-500 bg-white px-2 py-1 rounded-lg shadow-sm border border-gray-100">
+          Nº {serialNumber}
+        </span>
+      </div>
+
+      <div className="grid grid-cols-5 gap-2 text-center">
+        {['B', 'I', 'N', 'G', 'O'].map((letter, i) => (
+          <div key={`letter-${i}`} className="font-black text-slate-800 mb-1 text-lg">{letter}</div>
         ))}
+
+        {numbers.map((num, i) => {
+          const isMarked = num === 'LIVRE' || drawnNumbers.includes(num as number);
+          
+          return (
+            <div 
+              key={`num-${i}`} 
+              className={`aspect-square flex items-center justify-center rounded-xl font-bold text-sm sm:text-base transition-all duration-300
+                ${isMarked 
+                  ? 'bg-slate-800 text-white shadow-inner scale-95' 
+                  : 'bg-white text-slate-700 border border-gray-100 hover:bg-gray-50'}`}
+            >
+              {isMarked ? (
+                num === 'LIVRE' ? (
+                  <span className="text-yellow-400 text-xl">★</span>
+                ) : (
+                  <span className="flex flex-col items-center">
+                    <span>{num}</span>
+                    <span className="text-[10px] text-yellow-400 -mt-1 leading-none">★</span>
+                  </span>
+                )
+              ) : (
+                num
+              )}
+            </div>
+          );
+        })}
       </div>
     </div>
   );
