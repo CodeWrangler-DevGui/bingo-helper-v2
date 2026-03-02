@@ -1,12 +1,11 @@
 "use client";
 import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "../lib/supabase"; // Seu cabo de força
+import { supabase } from "../lib/supabase";
 import BingoCard from "../components/BingoCard";
 import AddCardModal from "../components/AddCardModal";
 import { saveCard, getCards, deleteCard, deleteAllCards } from "../actions/bingo";
 
-// Interface para evitar o erro 'any'
 interface BingoCardData {
     id: string;
     serialNumber: string;
@@ -40,9 +39,9 @@ export default function Home() {
 
             const result = await getCards(user.id);
             if (result.success && result.cards) {
-                const loadedCards = result.cards.map((c: BingoCardData) => ({
+                const loadedCards = (result.cards as BingoCardData[]).map((c) => ({
                     serial: c.serialNumber,
-                    numbers: c.numbers.map((n: number) => (n === 0 ? 'LIVRE' : n)),
+                    numbers: c.numbers.map((n) => (n === 0 ? 'LIVRE' as const : n)),
                     color: c.color || "jornal"
                 }));
                 setCards(loadedCards);
@@ -53,6 +52,15 @@ export default function Home() {
         fetchCards();
     }, [router]);
 
+    const handleDeleteAll = async () => {
+        if (!userId || !confirm("Apagar TUDO?")) return;
+        const result = await deleteAllCards(userId);
+        if (result.success) {
+            setCards([]);
+            setDrawnNumbers([]);
+        }
+    };
+
     const handleSaveManualCard = async (serial: string, numbers: (number | 'LIVRE')[], color: string) => {
         if (!userId) return;
         const result = await saveCard(serial, numbers, color, userId);
@@ -60,24 +68,15 @@ export default function Home() {
             setCards(prev => [...prev, { serial, numbers, color }]);
             setIsModalOpen(false);
         } else {
-            alert("Erro ao guardar a cartela na nuvem!");
+            alert("Erro ao guardar na nuvem!");
         }
     };
 
     const handleDeleteCard = async (serial: string) => {
-        if (!userId || !confirm(`Deseja excluir a cartela Nº ${serial}?`)) return;
+        if (!userId || !confirm(`Excluir cartela Nº ${serial}?`)) return;
         const result = await deleteCard(serial, userId);
         if (result.success) {
             setCards(prev => prev.filter(c => c.serial !== serial));
-        }
-    };
-
-    const handleDeleteAll = async () => {
-        if (!userId || !confirm("⚠️ CUIDADO: Isso vai apagar TODAS as suas cartelas!")) return;
-        const result = await deleteAllCards(userId);
-        if (result.success) {
-            setCards([]);
-            setDrawnNumbers([]);
         }
     };
 
@@ -99,6 +98,30 @@ export default function Home() {
 
     const filteredCards = cards.filter(card => card.serial.includes(searchTerm));
 
+    // 👉 LÓGICA DE AGRUPAMENTO
+    const groupedCards = filteredCards.reduce((acc, card) => {
+        const cor = card.color || "jornal";
+        if (!acc[cor]) acc[cor] = [];
+        acc[cor].push(card);
+        return acc;
+    }, {} as Record<string, typeof filteredCards>);
+
+    // 👉 CONFIGURAÇÃO VISUAL DAS SEÇÕES
+    const colorSections: Record<string, { label: string, emoji: string, bg: string, text: string }> = {
+        jornal: { label: "Jornal", emoji: "📰", bg: "bg-gray-200", text: "text-gray-800" },
+        verde: { label: "Verde", emoji: "🟩", bg: "bg-green-200", text: "text-green-900" },
+        rosa: { label: "Rosa", emoji: "🌸", bg: "bg-pink-200", text: "text-pink-900" },
+        amarelo: { label: "Amarelo", emoji: "🟨", bg: "bg-yellow-200", text: "text-yellow-900" },
+    };
+
+    // 👉 A MÁGICA DA ORDENAÇÃO ACONTECE AQUI
+    const colorOrder = ["jornal", "verde", "rosa", "amarelo"];
+    const sortedColorKeys = Object.keys(groupedCards).sort((a, b) => {
+        const posA = colorOrder.indexOf(a);
+        const posB = colorOrder.indexOf(b);
+        return (posA === -1 ? 999 : posA) - (posB === -1 ? 999 : posB);
+    });
+
     if (!mounted) return null;
 
     if (isLoading) {
@@ -117,14 +140,12 @@ export default function Home() {
                 <div className="flex flex-col sm:flex-row justify-between items-center mb-6 gap-4 bg-white p-6 rounded-2xl shadow-sm border border-gray-100">
                     <div>
                         <h1 className="text-3xl font-black text-slate-800 tracking-tight">Bingo Helper</h1>
-                        <p className="text-slate-500 font-medium mt-1">
-                            {cards.length} {cards.length === 1 ? 'cartela física' : 'cartelas físicas'} cadastradas
-                        </p>
+                        <p className="text-slate-500 font-medium mt-1">{cards.length} cartelas cadastradas</p>
                     </div>
                     <div className="flex flex-col sm:flex-row gap-3 w-full sm:w-auto">
-                        <button onClick={handleSignOut} className="text-red-500 font-bold px-4 hover:underline uppercase text-xs">Sair</button>
-                        <button onClick={handleDeleteAll} className="bg-red-50 text-red-700 px-6 py-4 rounded-xl font-bold transition-all">🗑️ Limpar Arena</button>
-                        <button onClick={() => setIsModalOpen(true)} className="bg-indigo-600 text-white px-8 py-4 rounded-xl font-bold shadow-lg transition-all active:scale-95">📝 + Cadastrar Cartela</button>
+                        <button onClick={handleSignOut} className="text-red-500 font-bold px-4 uppercase text-xs">Sair</button>
+                        <button onClick={handleDeleteAll} className="bg-red-50 text-red-700 px-6 py-4 rounded-xl font-bold">🗑️ Limpar Arena</button>
+                        <button onClick={() => setIsModalOpen(true)} className="bg-indigo-600 text-white px-8 py-4 rounded-xl font-bold shadow-lg">📝 + Cadastrar Cartela</button>
                     </div>
                 </div>
 
@@ -158,24 +179,10 @@ export default function Home() {
                     </div>
 
                     <form onSubmit={handleCallStone} className="flex flex-col sm:flex-row gap-4 items-center">
-                        <input
-                            type="number"
-                            value={stoneInput}
-                            onChange={(e) => setStoneInput(e.target.value)}
-                            placeholder="Nº da pedra..."
-                            className="w-full sm:w-48 px-4 py-3 rounded-xl border border-gray-200 outline-none font-black text-indigo-900 placeholder:text-slate-300"
-                        />
+                        <input type="number" value={stoneInput} onChange={(e) => setStoneInput(e.target.value)} placeholder="Nº da pedra..." className="w-full sm:w-48 px-4 py-3 rounded-xl border border-gray-200 outline-none font-black text-indigo-900 placeholder:text-slate-300" />
                         <button type="submit" className="w-full sm:w-auto bg-indigo-600 text-white px-8 py-3 rounded-xl font-bold shadow-md hover:bg-indigo-700 transition-all">Cantar Pedra</button>
-
-                        {/* 👇 BOTÃO LIMPAR SORTEIO RESTAURADO */}
                         {drawnNumbers.length > 0 && (
-                            <button
-                                type="button"
-                                onClick={() => setDrawnNumbers([])}
-                                className="text-red-500 hover:text-red-700 font-black px-4 py-3 transition-all uppercase text-xs tracking-widest"
-                            >
-                                ✖ Limpar Sorteio
-                            </button>
+                            <button type="button" onClick={() => setDrawnNumbers([])} className="text-red-500 hover:text-red-700 font-black px-4 py-3 transition-all uppercase text-xs tracking-widest">✖ Limpar Sorteio</button>
                         )}
                     </form>
 
@@ -189,32 +196,52 @@ export default function Home() {
                     )}
                 </div>
 
-                {/* BARRA DE PESQUISA */}
-                <div className="mb-8 relative group">
-                    <input
-                        type="text"
-                        placeholder="🔍 Procurar cartela pelo número de série..."
-                        value={searchTerm}
-                        onChange={(e) => setSearchTerm(e.target.value)}
-                        className="w-full md:w-1/2 px-5 py-4 rounded-xl border border-gray-200 outline-none shadow-sm text-indigo-900 font-black focus:border-indigo-300 transition-all placeholder:text-slate-300"
-                    />
+                {/* BUSCA */}
+                <div className="mb-8">
+                    <input type="text" placeholder="🔍 Procurar cartela pelo número de série..." value={searchTerm} onChange={(e) => setSearchTerm(e.target.value)} className="w-full md:w-1/2 px-5 py-4 rounded-xl border border-gray-200 outline-none shadow-sm text-indigo-900 font-black placeholder:text-slate-300" />
                 </div>
 
-                {/* GRID DE CARTELAS */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-                    {filteredCards.map((c) => (
-                        <BingoCard
-                            key={c.serial}
-                            serialNumber={c.serial}
-                            numbers={c.numbers}
-                            color={c.color}
-                            drawnNumbers={drawnNumbers}
-                            activeRoundColor={activeRoundColor}
-                            activeRule={activeRule}
-                            onDelete={handleDeleteCard}
-                        />
-                    ))}
-                </div>
+                {/* 👉 RENDERIZAÇÃO SEPARADA POR CORES (ORDEM FIXA) */}
+                {sortedColorKeys.length === 0 ? (
+                    <div className="text-center py-10">
+                        <p className="text-slate-400 font-bold uppercase tracking-widest">Nenhuma cartela encontrada</p>
+                    </div>
+                ) : (
+                    sortedColorKeys.map((colorKey) => {
+                        const cardsInColor = groupedCards[colorKey];
+                        const config = colorSections[colorKey] || { label: colorKey, emoji: "🏷️", bg: "bg-gray-200", text: "text-gray-800" };
+
+                        return (
+                            <div key={colorKey} className="mb-12">
+
+                                {/* Cabeçalho da Seção de Cor com erro do flex resolvido */}
+                                <div className={`inline-flex items-center gap-3 px-5 py-3 rounded-xl mb-6 shadow-sm border border-white/50 ${config.bg} ${config.text}`}>
+                                    <span className="text-2xl">{config.emoji}</span>
+                                    <h3 className="font-black text-lg uppercase tracking-wider">Cartelas {config.label}</h3>
+                                    <span className="bg-white/60 px-3 py-1 rounded-lg text-sm font-black ml-2">{cardsInColor.length}</span>
+                                </div>
+
+                                {/* Grid */}
+                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
+                                    {cardsInColor.map((c) => (
+                                        <BingoCard
+                                            key={c.serial}
+                                            serialNumber={c.serial}
+                                            numbers={c.numbers}
+                                            color={c.color}
+                                            drawnNumbers={drawnNumbers}
+                                            activeRoundColor={activeRoundColor}
+                                            activeRule={activeRule}
+                                            onDelete={handleDeleteCard}
+                                        />
+                                    ))}
+                                </div>
+
+                                <hr className="mt-12 border-gray-200/60" />
+                            </div>
+                        );
+                    })
+                )}
             </div>
 
             <AddCardModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} onSave={handleSaveManualCard} />

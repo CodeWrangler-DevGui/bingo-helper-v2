@@ -1,9 +1,7 @@
 "use client";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { supabase } from "@/lib/supabase"; // Verifique se o caminho está correto
-
-// 👉 PASSO 3.1: Importar os estilos do arquivo CSS Module
+import { supabase } from "@/lib/supabase";
 import styles from './login.module.css';
 
 export default function LoginPage() {
@@ -39,9 +37,12 @@ export default function LoginPage() {
                 if (error) throw error;
 
                 alert("Conta criada com sucesso! Entre na arena.");
-                setIsLogin(true); // Muda pra tela de entrar
+                setIsLogin(true);
             }
-        } catch (error: any) {
+        } catch (err) {
+            // 👉 RESOLVE O ERRO 'ANY': Tratamos o erro como um objeto de erro padrão
+            const error = err as Error;
+
             setErrorMsg(error.message === "Invalid login credentials"
                 ? "E-mail ou senha incorretos, parceiro."
                 : error.message);
@@ -65,20 +66,15 @@ export default function LoginPage() {
 
                 {/* Formulário */}
                 <form onSubmit={handleSubmit}>
-                    {/* 👉 PASSO 3.2: Container para os campos, usando a classe do CSS Module */}
                     <div className={styles.formFields}>
-                        {/* Campo de E-mail */}
                         <input
                             type="email"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
                             required
                             placeholder="teste@peao.com"
-                            // 👉 PASSO 3.3: Aplicar a classe CSS do input
                             className={styles.inputField}
                         />
-
-                        {/* Campo de Senha */}
                         <input
                             type="password"
                             value={password}
@@ -86,19 +82,15 @@ export default function LoginPage() {
                             required
                             minLength={6}
                             placeholder="Senha de 6 caracteres"
-                            // 👉 PASSO 3.3: Aplicar a classe CSS do input
                             className={styles.inputField}
                         />
                     </div>
-
-                    {/* Mensagem de Erro (se houver) */}
                     {errorMsg && (
                         <p className="text-red-500 text-sm font-bold text-center -mt-4 mb-4">
                             ⚠️ {errorMsg}
                         </p>
                     )}
 
-                    {/* Botão de Submit */}
                     <button
                         type="submit"
                         disabled={loading}
@@ -108,7 +100,6 @@ export default function LoginPage() {
                     </button>
                 </form>
 
-                {/* Link para alternar entre Login e Cadastro */}
                 <div className="mt-8 text-center">
                     <button
                         type="button"

@@ -1,34 +1,26 @@
-/* Container que segura os campos de entrada */
 .formFields {
     display: flex;
     flex-direction: column;
-    gap: 1rem; /* Espaço entre o campo de e-mail e senha */
-    margin-bottom: 2rem; /* Espaço antes do botão ENTRAR */
+    gap: 1rem; 
+    margin-bottom: 2rem; 
 }
 
-/* Estilo para os campos de entrada de e-mail e senha */
 .inputField {
     width: 100%;
-    padding: 1rem 1.25rem; /* Respiro interno para o texto */
-    border-radius: 1rem; /* Cantos arredondados do design */
-    border: 1px solid #d1d5db; /* Borda cinza clara */
-    
-    /* 👇 A MÁGICA ACONTECE AQUI 👇 */
-    background-color: white; /* Fundo branco puro para contraste máximo */
-    color: black;            /* Texto preto para legibilidade total ao digitar */
-    /* 👆 👇👆 */
-    
+    padding: 1rem 1.25rem; 
+    border-radius: 1rem;
+    border: 1px solid #d1d5db; 
+    background-color: white; 
+    color: black;            
     font-size: 1rem;
-    transition: border-color 0.2s; /* Efeito suave na borda ao focar */
+    transition: border-color 0.2s; 
 }
 
-/* Estilo para quando o usuário clicar no campo (foco) */
 .inputField:focus {
-    border-color: #6366f1; /* Cor indigo da marca para destacar */
-    outline: none; /* Remove o contorno padrão do navegador */
+    border-color: #6366f1; 
+    outline: none; 
 }
 
-/* Estilo para o texto do placeholder (ex: teste@peao.com) */
 .inputField::placeholder {
-    color: #9ca3af; /* Um cinza médio para o placeholder, mais claro que o texto digitado */
+    color: #9ca3af; 
 }

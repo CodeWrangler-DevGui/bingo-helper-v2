@@ -1,4 +1,3 @@
-// Função auxiliar para sortear números sem repetir
 export const generateColumn = (min: number, max: number, count: number): number[] => {
     const numbers = new Set<number>();
     while (numbers.size < count) {
@@ -7,7 +6,6 @@ export const generateColumn = (min: number, max: number, count: number): number[
     return Array.from(numbers);
 };
 
-// Função principal que monta a cartela oficial
 export const generateBingoCard = (): (number | 'LIVRE')[] => {
     const colB = generateColumn(1, 15, 5);
     const colI = generateColumn(16, 30, 5);
